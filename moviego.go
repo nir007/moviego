@@ -145,18 +145,20 @@ func (V Video) render() error {
 	return V.stream.OverWriteOutput().Run()
 }
 
-func (V *Video) checkStartAndEnd(start, end float64) {
+func (V *Video) checkStartAndEnd(start, end float64) error {
 	if start > end {
-		panic("The `start` of the clip can't be bigger than its `end`.")
+		return errors.New("`start` of the clip can't be bigger than its `end`")
 	}
 
 	if start > V.duration {
-		panic("The `start` cannot be bigger than the length of the main video.")
+		return errors.New("`start` cannot be bigger than the length of the main video")
 	}
 
 	if end > V.duration {
-		panic("The `end` cannot be bigger than the length of the main video.")
+		return errors.New("`end` cannot be bigger than the length of the main video")
 	}
+
+	return nil
 }
 
 func (V Video) tempRender() Video {
@@ -184,15 +186,18 @@ func (V Video) tempRender() Video {
 	return tempVideo
 }
 
-func (V Video) SubClip(start, end float64) Video {
-	V.checkStartAndEnd(start, end)
+func (V Video) SubClip(start, end float64) (Video, error) {
+	err := V.checkStartAndEnd(start, end)
+	if err != nil {
+		return Video{}, err
+	}
 
 	V.addKwArgs("ss", fmt.Sprintf("%f", start))
 	V.addKwArgs("to", fmt.Sprintf("%f", end))
 	V.duration = end - start
 	V.hasModified = true
 
-	return V.tempRender()
+	return V.tempRender(), nil
 }
 
 func Concat(videos []Video) (Video, error) {
@@ -310,20 +315,17 @@ func Load(fileName string) (Video, error) {
 
 	extension := strings.Trim(filepath.Ext(fileName), ".")
 	if extension == "" {
-		panic(fmt.Sprintf("error: your file '%s' does not have an extension!", fileName))
+		return Video{}, fmt.Errorf("file '%s' does not have an extension", fileName)
 	}
 
 	abs, absError := filepath.Abs(fileName)
-
-	videoProbe, videoProbeError := ffmpeg.Probe(abs)
-
-	if videoProbeError != nil {
-		log.Printf("videoProbeError: %v", videoProbeError)
-		panic(fmt.Errorf("fatal error: %w", videoProbeError))
-	}
-
 	if absError != nil {
 		return Video{}, absError
+	}
+
+	videoProbe, videoProbeError := ffmpeg.Probe(abs)
+	if videoProbeError != nil {
+		return Video{}, fmt.Errorf("fatal error: %w", videoProbeError)
 	}
 
 	return Video{

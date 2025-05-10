@@ -5,7 +5,7 @@
 ### ⬇️ Instalation
 
 ```bash
-go get github.com/mowshon/moviego
+go get github.com/nir007/moviego
 ```
 
 ### 🎥 Resize video in Golang
@@ -19,7 +19,7 @@ Currently there are three methods in the package that help you resize the video:
 package main
 
 import (
-    "github.com/mowshon/moviego"
+    "github.com/nir007/moviego"
 )
 
 func main() {
@@ -46,7 +46,7 @@ The `Video` structure has a `SubClip` method which can trim the video by specify
 package main
 
 import (
-    "github.com/mowshon/moviego"
+    "github.com/nir007/moviego"
     "log"
 )
 
