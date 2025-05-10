@@ -1,4 +1,4 @@
-module github.com/mowshon/moviego
+module github.com/nir007/moviego
 
 go 1.20
 
